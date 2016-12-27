@@ -6,7 +6,7 @@ from setup import basedir
 class BaseConfig(object):
     SECRET_KEY = "SO_SECURE"
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///hangboard-helper.db'#os.environ['DATABASE_URL']
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 
