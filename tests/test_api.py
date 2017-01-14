@@ -1,13 +1,14 @@
 from testing_config import BaseTestConfig
-from application.models import User
+from application.models import User, UserSession
 import json
 from application.utils import auth
-
 
 class TestAPI(BaseTestConfig):
     some_user = {
         "email": "one@gmail.com",
-        "password": "something1"
+        "password": "something1",
+        "imperial": True,
+        "bodyweight": 150
     }
 
     def test_get_spa_from_index(self):
@@ -86,3 +87,18 @@ class TestAPI(BaseTestConfig):
         self.assertEqual(response2.status_code, 401)
         response3 = self.app.get('/api/user', headers=bad_headers)
         self.assertEqual(response3.status_code, 401)
+
+    def test_get_workout_for_date(self):
+        # headers = {
+        #     "Authorization": self.token
+        # }
+        # response = self.app.post(
+        #     "/api/get_workout_for_date",
+        #     data=json.dumps({"date": date}),
+        #     headers=headers,
+        #     content_type="application/json"
+        # )
+        pass
+
+    def test_generate_workouts_for_user(self):
+        pass
