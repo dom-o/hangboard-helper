@@ -24,20 +24,23 @@ import itertools
 #             else:
 #                 raise ValueError("Unknown word")
 
-def get_next_session(weights, sets_in_sessions, set_gen):
+def get_next_session(spec):
     # seed_weight =
-    session_weights = itertools.cycle(weights)
-    sets_in_sessions = itertools.cycle(sets_in_sessions)
+    set_gen = get_next_set(spec.pop())
+    spec = zip(*[itertools.cycle(x) for x in spec])
     next_session = {}
 
-    for sets_in_session, session_weight in zip(sets_in_sessions, session_weights):
-
-        # curr_weight = calc_weight(curr_weight, session_weight)
-        for x in range(sets_in_session):
-            next_set = next(set_gen)
-            sets.append(next_set)
-        next_session["sets"] = sets
-        yield next_session
+    while True:
+        for sets_in_session, session_weight in spec:
+            next_session["sets"] = []
+            # curr_weight = calc_weight(curr_weight, session_weight)
+            for x in range(sets_in_session):
+                next_session["sets"].append(next(set_gen))
+            new_spec = yield next_session
+            if new_spec:
+                set_gen.send(new_spec.pop())
+                spec = zip(*[itertools.cycle(x) for x in new_spec])
+                break
 
 
 def get_next_set(spec):
@@ -50,7 +53,6 @@ def get_next_set(spec):
             # curr_weight = calc_weight(curr_weight, set_weight)
             next_set["rest"] = set_rest
             next_set["reps"] = []
-            print(reps_in_set)
             for x in range(reps_in_set):
                 next_set["reps"].append(next(rep_gen))
             new_spec = yield next_set

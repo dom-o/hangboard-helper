@@ -53,3 +53,22 @@ class TestFactory(BaseTestConfig):
         self.assertEqual(next_set["rest"], 90)
         self.assertEqual(len(next_set["reps"]), 2)
         self.assertEqual(next_set["reps"][0], {"time_on": 5, "time_off": 5})
+
+    def test_get_next_session(self):
+        sets_in_session = [3, 6, 7]
+        session_weight = ["X"]
+        set_spec = [ [180], ["X", "X+10", "X+20"], [7, 6, 5], [[7],[3],["X"]] ]
+        session_generator = factory.get_next_session([sets_in_session, session_weight, set_spec])
+
+        next_session = next(session_generator)
+        self.assertEqual(len(next_session["sets"]), 3)
+        next_session = next(session_generator)
+        self.assertEqual(len(next_session["sets"]), 6)
+
+        new_sets_in_session = [2]
+        new_session_weight = ["X"]
+        new_set_spec = [ [120, 90], ["X"], [7, 2], [[5],[5],["X"]] ]
+        next_session = session_generator.send([new_sets_in_session, new_session_weight, new_set_spec])
+        self.assertEqual(len(next_session["sets"]), 2)
+        next_session = next(session_generator)
+        self.assertEqual(len(next_session["sets"]), 2)
