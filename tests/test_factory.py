@@ -72,3 +72,12 @@ class TestFactory(BaseTestConfig):
         self.assertEqual(len(next_session["sets"]), 2)
         next_session = next(session_generator)
         self.assertEqual(len(next_session["sets"]), 2)
+
+    def test_calc_weight(self):
+        curr_weight = 180
+        weights = ["X+1", "X-10", "X*0.75", "X/3", "x+(X*0.04)"]
+        expected_weights = [181, 171, 128.25, 42.75, 44.46]
+
+        for weight, expected in zip(weights, expected_weights):
+            curr_weight = factory.calc_weight(curr_weight, weight)
+            self.assertEqual(curr_weight, expected)

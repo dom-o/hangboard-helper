@@ -1,5 +1,5 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User
+from .models import User, UserSession
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
@@ -26,7 +26,9 @@ def create_user():
     incoming = request.get_json()
     user = User(
         email=incoming["email"],
-        password=incoming["password"]
+        password=incoming["password"],
+        imperial=incoming["imperial"],
+        bodyweight=incoming["bodyweight"]
     )
     db.session.add(user)
 
@@ -62,3 +64,13 @@ def is_token_valid():
         return jsonify(token_is_valid=True)
     else:
         return jsonify(token_is_valid=False), 403
+
+
+@app.route("/api/get_workout_for_date", methods=["POST"])
+@requires_auth
+def get_workout_for_date():
+    pass
+
+@app.route("/api/create_workouts_for_user", methods=["POST"])
+def create_workouts():
+    pass

@@ -1,28 +1,5 @@
-import itertools
-# import re, math
-#
-# class Lexer():
-#     def get_words(self, text):
-#         words = re.split("\s+", text)
-#         return words
-#
-# class Interpreter():
-#     dictionary = {}
-#     stack = []
-#
-#     def addWords(self, new_dict):
-#         for new_word in new_dict:
-#             self.dictionary[new_word.upper()] = new_dict[new_word]
-#
-#     def run(self, text):
-#         words = Lexer().get_words(text)
-#         for word in words:
-#             if word in self.dictionary:
-#                 self.dictionary[word](self)
-#             elif not(math.isnan(float(word))):
-#                 self.stack.append(float(word))
-#             else:
-#                 raise ValueError("Unknown word")
+import itertools, re
+from .fourFn import solve
 
 def get_next_session(spec):
     # seed_weight =
@@ -73,9 +50,6 @@ def get_next_rep(spec):
                 spec = zip(*[itertools.cycle(x) for x in new_spec])
                 break
 
-def calc_weight(base, transforms):
-    # new_transforms = yield
-    # for transform in transforms:
-    #     #apply transforms using base
-    # yield weight
-    pass
+def calc_weight(base, transform):
+    transform = re.sub(r'[Xx]', str(base), transform)
+    return solve(transform)
