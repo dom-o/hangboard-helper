@@ -9,7 +9,9 @@ import json
 class BaseTestConfig(TestCase):
     default_user = {
         "email": "default@gmail.com",
-        "password": "something2"
+        "password": "something2",
+        "imperial": True,
+        "bodyweight": 180 
     }
 
     def create_app(self):
