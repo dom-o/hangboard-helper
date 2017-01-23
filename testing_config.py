@@ -11,7 +11,7 @@ class BaseTestConfig(TestCase):
         "email": "default@gmail.com",
         "password": "something2",
         "imperial": True,
-        "bodyweight": 180 
+        "bodyweight": 180
     }
 
     def create_app(self):
@@ -20,6 +20,7 @@ class BaseTestConfig(TestCase):
 
     def setUp(self):
         self.app = self.create_app().test_client()
+        db.drop_all()
         db.create_all()
         res = self.app.post(
                 "/api/create_user",
