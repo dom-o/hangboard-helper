@@ -1,6 +1,8 @@
 from testing_config import BaseTestConfig
-from application.models import User, UserSession
-import json
+from application.models import User, UserSession, ProgramTemplate
+import json, calendar
+from datetime import datetime
+from email.utils import format_datetime
 from application.utils import auth
 
 class TestAPI(BaseTestConfig):
@@ -10,6 +12,7 @@ class TestAPI(BaseTestConfig):
         "imperial": True,
         "bodyweight": 150
     }
+    maxDiff = None
 
     def test_get_spa_from_index(self):
         result = self.app.get("/")
@@ -88,17 +91,183 @@ class TestAPI(BaseTestConfig):
         response3 = self.app.get('/api/user', headers=bad_headers)
         self.assertEqual(response3.status_code, 401)
 
-    def test_get_workout_for_date(self):
-        # headers = {
-        #     "Authorization": self.token
-        # }
-        # response = self.app.post(
-        #     "/api/get_workout_for_date",
-        #     data=json.dumps({"date": date}),
-        #     headers=headers,
-        #     content_type="application/json"
-        # )
-        pass
 
     def test_generate_workouts_for_user(self):
-        pass
+        headers = {
+            "Authorization": self.token
+        }
+        dates = [format_datetime(datetime(2017, 1, x), usegmt=False) for x in range(1,6)]
+        prog_id = ProgramTemplate.query.filter_by(name="test_program").first().id
+        response = self.app.post(
+            "/api/create_workouts_for_user",
+            data=json.dumps({
+                "dates": [date for date in dates],
+                "prog": prog_id,
+                "weight": 111.111111111111111111111111111111111,
+                "grip": "half crimp",
+            }),
+            headers=headers,
+            content_type="application/json"
+        )
+
+        #get workouts put into database here
+        db_sessions = [UserSession.query.filter_by(date=date).first() for date in dates]
+        db_sessions = [{
+            "user_id":session.user_id,
+            "date":session.date,
+            "grip":session.grip,
+            "note":session.note,
+            "program":session.program,
+            "sets":[{
+                "rest": set_.rest,
+                "ordinal": set_.ordinal,
+                "completed": set_.completed,
+                "effort_level": set_.effort_level,
+                "reps": [{
+                    "time_on": rep.time_on,
+                    "time_off": rep.time_off,
+                    "weight":rep.weight,
+                    "ordinal":rep.ordinal
+                } for rep in set_.reps]
+            } for set_ in session.sets]
+        } for session in db_sessions]
+
+        #compare return workouts with workouts from databases with master workouts here
+        user_id = json.loads(self.app.get('/api/user', headers=headers).data.decode("utf-8"))["result"]["id"]
+        expected_sessions=[{
+            "user_id": user_id, "date": dates[0], "grip": "half crimp", "note": "", "program": prog_id,
+            'sets': [{
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 65
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 65
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 65
+                }], 'rest': 180, 'ordinal': 0, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 75
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 75
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 75
+                }],
+                'rest': 150, 'ordinal': 1, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 85
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 85
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 85
+                }],
+                'rest': 180, 'ordinal': 2, "completed": False, "effort_level": -1
+            }]
+        }, {
+            "user_id": user_id, "date": dates[1], "grip": "half crimp", "note": "", "program": prog_id,
+            'sets': [{
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 65
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 65
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 65
+                }],
+                'rest': 180, 'ordinal': 0, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 75
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 75
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 75
+                }],
+                'rest': 150, 'ordinal': 1, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 10, 'ordinal': 0, 'time_off': 5, 'weight': 85
+                }, {
+                    'time_on': 6, 'ordinal': 1, 'time_off': 3, 'weight': 85
+                }, {
+                    'time_on': 2, 'ordinal': 2, 'time_off': 1, 'weight': 85
+                }],
+                'rest': 180, 'ordinal': 2, "completed": False, "effort_level": -1
+            }]
+        }, {
+            "user_id": user_id, "date": dates[2], "grip": "half crimp", "note": "", "program": prog_id,
+            'sets': [{
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 70
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 70
+                }],
+                'rest': 180, 'ordinal': 0, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 80
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 80
+                }],
+                'rest': 150, 'ordinal': 1, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 90
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 90
+                }],
+                'rest': 180, 'ordinal': 2, "completed": False, "effort_level": -1
+            }]
+        }, {
+            "user_id": user_id, "date": dates[3], "grip": "half crimp", "note": "", "program": prog_id,
+            'sets': [{
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 70
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 70
+                }],
+                'rest': 180, 'ordinal': 0, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 80
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 80
+                }],
+                'rest': 150, 'ordinal': 1, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 6, 'ordinal': 0, 'time_off': 3, 'weight': 90
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 90
+                }],
+                'rest': 180, 'ordinal': 2, "completed": False, "effort_level": -1
+            }]
+        }, {
+            "user_id": user_id, "date": dates[4], "grip": "half crimp", "note": "", "program": prog_id,
+            'sets': [{
+                'reps': [{
+                    'time_on': 2, 'ordinal': 0, 'time_off': 1, 'weight': 75
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 75
+                }],
+                'rest': 180, 'ordinal': 0, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 2, 'ordinal': 0, 'time_off': 1, 'weight': 85
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 85
+                }],
+                'rest': 150, 'ordinal': 1, "completed": False, "effort_level": -1
+            }, {
+                'reps': [{
+                    'time_on': 2, 'ordinal': 0, 'time_off': 1, 'weight': 95
+                }, {
+                    'time_on': 2, 'ordinal': 1, 'time_off': 1, 'weight': 95
+                }],
+                'rest': 180, 'ordinal': 2, "completed": False, "effort_level": -1
+            }]
+        }]
+        print(dates[0])
+        resp_sessions = json.loads(response.data.decode("utf-8"))["sessions"]
+        for db_actual, resp_actual, expected in zip(db_sessions, resp_sessions, expected_sessions):
+            self.assertEqual(resp_actual, expected)
+            self.assertEqual(db_actual, expected)

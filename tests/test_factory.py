@@ -2,14 +2,17 @@ from application.utils import factory
 from testing_config import BaseTestConfig
 
 class TestFactory(BaseTestConfig):
+
     def test_get_next(self):
+        self.maxDiff = None
         weights = {
-            "session": ["0.9*X"],
+            "pre": "0.9*X",
+            "session": ["x"],
             "set":[["0.65*X", "0.75*X", "0.85*X"],
                 ["0.7*X", "0.8*X", "0.9*X"],
                 ["0.75*X", "0.85*X", "0.95*X"],
                 ["0.4*X", "0.5*X", "0.6*X"]],
-            "rep": [["X"]]
+            "rep": [["0+X"]]
         }
         times = {
             "session": [],

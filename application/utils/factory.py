@@ -2,10 +2,10 @@ import itertools, re
 from .fourFn import solve
 
 def get_next(base, weights, times, freqs):
-    curr_weight = base
+    curr_weight = calc_weight(base, weights["pre"])
     for sesh_weight, sesh_freq, set_weights, set_times, set_freqs, rep_weights, rep_times, rep_freq in zip(itertools.cycle(weights["session"]), itertools.cycle(freqs["session"]), itertools.cycle(weights["set"]), itertools.cycle(times["set"]), itertools.cycle(freqs["set"]), itertools.cycle(weights["rep"]), itertools.cycle(times["rep"]), itertools.cycle(freqs["rep"])):
         next_session = {"sets":[]}
-        curr_weight = calc_weight(base, sesh_weight)
+        curr_weight = calc_weight(curr_weight, sesh_weight)
         set_incr = 0
         for x, set_weight, set_rest in zip(range(set_freqs), itertools.cycle(set_weights), itertools.cycle(set_times)):
             next_set = {"reps":[], "rest":-1}
@@ -25,5 +25,5 @@ def get_next(base, weights, times, freqs):
 
 
 def calc_weight(base, transform):
-    transform = re.sub(r'[Xx]', str(base), transform)
+    transform = re.sub(r'[xX]', str(base), transform)
     return solve(transform)

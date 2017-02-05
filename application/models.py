@@ -42,10 +42,6 @@ class UserSession(db.Model):
     grip = db.Column(db.String(255))
     program = db.Column(db.Integer(), db.ForeignKey("program_template.id"))
 
-    @staticmethod
-    def get_workout_for_user_by_date(date, user_id):
-        workout = UserSession.query.filter_by(date=date, user_id=user_id).first()
-        return workout
 
 class UserSet(db.Model):
     __tablename__ = "user_set"
@@ -79,4 +75,5 @@ class OneRepMax(db.Model):
 class ProgramTemplate(db.Model):
     __tablename__ = "program_template"
     id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255), unique=True)
     program = db.Column(JSON)

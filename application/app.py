@@ -1,8 +1,10 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User, UserSession
+from .models import User, UserSession, UserSet, UserRep, ProgramTemplate
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
+from .utils import factory
+import json
 
 
 @app.route('/', methods=['GET'])
@@ -69,8 +71,62 @@ def is_token_valid():
 @app.route("/api/get_workout_for_date", methods=["POST"])
 @requires_auth
 def get_workout_for_date():
-    pass
+    incoming = request.get_json()
+    dates = incoming["dates"]
+    workouts = [UserSession.query.filter_by(date=date, user_id=g.current_user["id"]).first() for date in dates]
+
 
 @app.route("/api/create_workouts_for_user", methods=["POST"])
+@requires_auth
 def create_workouts():
-    pass
+    incoming = request.get_json()
+
+    template = ProgramTemplate.query.filter_by(id=incoming["prog"]).first()
+    prog_id = template.id
+    template = json.loads(template.program)
+
+    gen = factory.get_next(incoming["weight"], template["weights"], template["times"], template["freqs"])
+
+    new_sessions = [UserSession(
+        user_id=g.current_user["id"],
+        date=date,
+        grip=incoming["grip"],
+        note="",
+        program=prog_id,
+        sets=[UserSet(
+            rest = set_["rest"],
+            ordinal = set_["ordinal"],
+            completed = False,
+            effort_level = -1,
+            reps = [ UserRep(
+                time_on = rep["time_on"],
+                time_off= rep["time_off"],
+                weight=rep["weight"],
+                ordinal=rep["ordinal"]
+            ) for rep in set_["reps"] ]
+        ) for set_ in (next(gen))["sets"]]
+    ) for date in incoming["dates"]]
+
+    db.session.add_all(new_sessions)
+    db.session.commit()
+    new_sessions = [{
+        "user_id":session.user_id,
+        "date":session.date,
+        "grip":session.grip,
+        "note":session.note,
+        "program":session.program,
+        "sets":[{
+            "rest": set_.rest,
+            "ordinal": set_.ordinal,
+            "completed": set_.completed,
+            "effort_level": set_.effort_level,
+            "reps": [{
+                "time_on": rep.time_on,
+                "time_off": rep.time_off,
+                "weight":rep.weight,
+                "ordinal":rep.ordinal
+            } for rep in set_.reps]
+        } for set_ in session.sets]
+    } for session in new_sessions]
+
+    return jsonify(sessions=new_sessions)
