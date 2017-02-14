@@ -28,9 +28,7 @@ def create_user():
     incoming = request.get_json()
     user = User(
         email=incoming["email"],
-        password=incoming["password"],
-        imperial=incoming["imperial"],
-        bodyweight=incoming["bodyweight"]
+        password=incoming["password"]
     )
     db.session.add(user)
 

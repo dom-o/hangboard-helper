@@ -12,7 +12,7 @@ class User(db.Model):
     imperial = db.Column(db.Boolean())
     sessions = db.relationship("UserSession", lazy="dynamic")
 
-    def __init__(self, email, password, imperial, bodyweight):
+    def __init__(self, email, password, imperial=True, bodyweight=-1):
         self.email = email
         self.active = True
         self.password = User.hashed_password(password)
